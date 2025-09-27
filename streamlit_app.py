@@ -1,54 +1,79 @@
-import io
 from pathlib import Path
+import io
+import base64
 import streamlit as st
+import datetime
 
-from app.utils.filetype import get_ext
-from app.services.excel import process_excel
-from app.services.word import process_word
-from app.services.pdf import process_pdf  # continua 501
+# ===== Paths =====
+ROOT = Path(__file__).resolve().parent
+ASSETS = ROOT / "assets"
+LOGO = ASSETS / "logo.png"
+FAVICON = ASSETS / "favicon.png"
+CSS = ASSETS / "ui.css"
 
-# ---- Page config (usa logo como ícone se quiser) ----
-LOGO_PATH = Path("logo.png")  # coloque seu logo aqui
+# ===== Branding =====
+APP_NAME = "CMA Table Cleaner"
+APP_TAGLINE = "Limpeza inteligente de DOCX/XLSX mantendo o layout"
+
+# ===== Page config (primeiro) =====
 st.set_page_config(
-    page_title="Excluir Linhas • Crisley Matheus Informática",
-    page_icon=str(LOGO_PATH) if LOGO_PATH.exists() else "🧹",
+    page_title=f"{APP_NAME} • Crisley Matheus Automação",
+    page_icon=str(FAVICON) if FAVICON.exists() else (str(LOGO) if LOGO.exists() else "🧹"),
     layout="centered"
 )
 
-# ---- Carregar CSS ----
-css_path = Path("app/ui.css")
-if css_path.exists():
-    st.markdown(f"<style>{css_path.read_text()}</style>", unsafe_allow_html=True)
+# ===== CSS =====
+if CSS.exists():
+    st.markdown(f"<style>{CSS.read_text()}</style>", unsafe_allow_html=True)
 
-# ---- Header bonito ----
-col_logo, col_text = st.columns([0.18, 0.82], vertical_alignment="center")
-with col_logo:
-    if LOGO_PATH.exists():
-        st.image(str(LOGO_PATH), use_container_width=True)
-with col_text:
-    st.markdown("""
-    <div class="brand-hero">
-      <div>
-        <h1>Excluir linhas por nome</h1>
-        <div class="subtitle">DOCX • XLSX  —  Layout preservado • Paleta oficial</div>
-      </div>
-    </div>
-    """, unsafe_allow_html=True)
+# ===== Imports do app =====
+from app.utils.filetype import get_ext
+from app.services.excel import process_excel
+from app.services.word import process_word
 
-# ---- Card principal ----
+# ===== Header =====
+c1, c2 = st.columns([0.18, 0.82], vertical_alignment="center")
+with c1:
+    if LOGO.exists():
+        # Exibir imagem circular com borda
+        logo_base64 = base64.b64encode(LOGO.read_bytes()).decode()
+        st.markdown(
+            f"""
+            <div style="display:flex;justify-content:center;align-items:center;">
+              <img src="data:image/png;base64,{logo_base64}"
+                   style="width:100px;height:100px;border-radius:50%;
+                          border:3px solid #9B5CF6;object-fit:cover;">
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+with c2:
+    st.markdown(
+        f"""
+        <div class="brand">
+          <div>
+            <h1>{APP_NAME}</h1>
+            <div class="sub">{APP_TAGLINE}</div>
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+# ===== Card principal =====
 st.markdown('<div class="card">', unsafe_allow_html=True)
 
 uploaded = st.file_uploader(
-    "Arquivo (.xlsx, .docx ou .pdf)",
-    type=["xlsx", "docx", "pdf"],
-    help="Arraste e solte ou clique para selecionar. Limite sugerido: 200 MB."
+    "Arquivo (.xlsx ou .docx)",
+    type=["xlsx", "docx"],
+    help="Arraste e solte ou clique para selecionar. Suporte para Excel e Word."
 )
 names = st.text_input("Nomes a excluir (separados por vírgula)", placeholder="Maria, João, Ana")
 
-colA, colB = st.columns(2)
-with colA:
+cA, cB = st.columns(2)
+with cA:
     run = st.button("Processar", use_container_width=True)
-with colB:
+with cB:
     clear = st.button("Limpar", use_container_width=True)
 
 if clear:
@@ -56,7 +81,7 @@ if clear:
 
 if run:
     if not uploaded:
-        st.error("Envie um arquivo.")
+        st.error("Envie um arquivo .xlsx ou .docx.")
     elif not names.strip():
         st.error("Informe ao menos um nome.")
     else:
@@ -71,10 +96,6 @@ if run:
             elif ext == "docx":
                 out_bytes, out_name = process_word(content, uploaded.name, names_list)
                 mime = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-            elif ext == "pdf":
-                st.markdown('<div class="notice">PDF ainda não suportado mantendo layout. (v2 em desenvolvimento)</div>', unsafe_allow_html=True)
-                out_bytes, out_name = process_pdf(content, uploaded.name, names_list)  # 501
-                mime = "application/pdf"
             else:
                 st.error("Formato não suportado.")
                 st.stop()
@@ -92,5 +113,12 @@ if run:
 
 st.markdown('</div>', unsafe_allow_html=True)
 
-# ---- Rodapé curtinho (opcional)
-st.caption("© Crisley Matheus Informática — Automação que simplifica.")
+year = datetime.datetime.now().year
+st.markdown(
+    f"""
+    <div class="footer">
+        © {year} Crisley Matheus Automação — simples, direto e funcional.
+    </div>
+    """,
+    unsafe_allow_html=True
+)
