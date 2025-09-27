@@ -1,9 +1,4 @@
-fastapi
-uvicorn
+streamlit
 python-docx
 openpyxl
 pandas
-PyMuPDF
-borb
-streamlit
-gradio
