@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+python-docx
+openpyxl
+pandas
+PyMuPDF
+borb
+streamlit
+gradio
