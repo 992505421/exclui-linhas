@@ -11,15 +11,25 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
 html, body, [class*="css"] { font-family: Inter, system-ui, Segoe UI, Roboto, sans-serif; }
 
-.block-container{ max-width: 900px; padding-top: 2rem; padding-bottom: 3rem; }
+.block-container{ max-width: 900px; padding-top: 2.5rem; padding-bottom: 3rem; }
 
+/* Logo sozinha no topo (fora do card) */
+.logo-circle img{
+  max-width: 100px;    /* ajuste livre */
+  height: auto;
+  border-radius: 50%;
+  border: 3px solid var(--accent);
+  display: block;
+  margin: auto;
+}
+
+/* Card do título (sem logo dentro) */
 .brand{
-  display:flex;
-  gap:16px;
-  align-items:center;
-  margin-top: 40px;      /* <<< empurra para baixo */
-  margin-bottom:18px;
-  padding:18px;
+  display: block;                 /* não é mais flex */
+  text-align: center;             /* centraliza textos */
+  margin-top: 0;
+  margin-bottom: 18px;
+  padding: 18px;
   border-radius: var(--radius);
   background: linear-gradient(90deg, var(--accent) 0%, var(--accent2) 100%);
   border: 1px solid rgba(148,163,184,.12);
@@ -27,7 +37,15 @@ html, body, [class*="css"] { font-family: Inter, system-ui, Segoe UI, Roboto, sa
 .brand h1{ margin:0; font-weight:800; letter-spacing:.2px; }
 .brand .sub{ color: var(--muted); margin-top:4px; }
 
-
+/* Card do formulário */
+.card{
+  border-radius: var(--radius);
+  background: var(--card);
+  border: 1px solid rgba(148,163,184,.12);
+  box-shadow: 0 10px 30px rgba(2,6,23,.35);
+  padding: 20px 18px 16px;
+  margin-bottom: 20px;
+}
 
 label, .stTextInput>label{ color: var(--muted) !important; }
 
@@ -57,9 +75,7 @@ label, .stTextInput>label{ color: var(--muted) !important; }
   transition: .15s ease;
 }
 
-#MainMenu, footer{ display:none; }
-
-/*referente a rodapé */
+/* Footer centralizado */
 .footer {
   text-align: center;
   color: var(--muted);
@@ -67,3 +83,5 @@ label, .stTextInput>label{ color: var(--muted) !important; }
   margin-top: 40px;
   padding: 10px 0;
 }
+
+#MainMenu, footer{ display:none; }

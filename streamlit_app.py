@@ -1,8 +1,8 @@
 from pathlib import Path
 import io
 import base64
-import streamlit as st
 import datetime
+import streamlit as st
 
 # ===== Paths =====
 ROOT = Path(__file__).resolve().parent
@@ -31,88 +31,88 @@ from app.utils.filetype import get_ext
 from app.services.excel import process_excel
 from app.services.word import process_word
 
-# ===== Header =====
-c1, c2 = st.columns([0.18, 0.82], vertical_alignment="center")
-with c1:
-    if LOGO.exists():
-        # Exibir imagem circular com borda
-        logo_base64 = base64.b64encode(LOGO.read_bytes()).decode()
-        st.markdown(
-            f"""
-            <div style="display:flex;justify-content:center;align-items:center;">
-              <img src="data:image/png;base64,{logo_base64}"
-                   style="width:100px;height:100px;border-radius:50%;
-                          border:3px solid #9B5CF6;object-fit:cover;">
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-with c2:
+# ===== Header: LOGO sozinha + card do título separado =====
+if LOGO.exists():
+    logo_b64 = base64.b64encode(LOGO.read_bytes()).decode()
     st.markdown(
         f"""
-        <div class="brand">
-          <div>
-            <h1>{APP_NAME}</h1>
-            <div class="sub">{APP_TAGLINE}</div>
+        <div style="display:flex; justify-content:center; margin-top:20px; margin-bottom:12px;">
+          <div class="logo-circle">
+            <img src="data:image/png;base64,{logo_b64}" alt="Logo Crisley">
           </div>
         </div>
         """,
-        unsafe_allow_html=True,
+        unsafe_allow_html=True
     )
 
-# ===== Card principal =====
-st.markdown('<div class="card">', unsafe_allow_html=True)
-
-uploaded = st.file_uploader(
-    "Arquivo (.xlsx ou .docx)",
-    type=["xlsx", "docx"],
-    help="Arraste e solte ou clique para selecionar. Suporte para Excel e Word."
+st.markdown(
+    f"""
+    <div class="brand">
+      <h1>{APP_NAME}</h1>
+      <div class="sub">{APP_TAGLINE}</div>
+    </div>
+    """,
+    unsafe_allow_html=True
 )
-names = st.text_input("Nomes a excluir (separados por vírgula)", placeholder="Maria, João, Ana")
 
-cA, cB = st.columns(2)
-with cA:
-    run = st.button("Processar", use_container_width=True)
-with cB:
-    clear = st.button("Limpar", use_container_width=True)
+# ===== Card principal =====
+with st.container():
+    st.markdown('<div class="card">', unsafe_allow_html=True)
 
-if clear:
-    st.rerun()
+    uploaded = st.file_uploader(
+        "Arquivo (.xlsx ou .docx)",
+        type=["xlsx", "docx"],
+        help="Arraste e solte ou clique para selecionar. Suporte para Excel e Word."
+    )
+    names = st.text_input(
+        "Nomes a excluir (separados por vírgula)",
+        placeholder="Maria, João, Ana"
+    )
 
-if run:
-    if not uploaded:
-        st.error("Envie um arquivo .xlsx ou .docx.")
-    elif not names.strip():
-        st.error("Informe ao menos um nome.")
-    else:
-        ext = get_ext(uploaded.name)
-        names_list = [n.strip() for n in names.split(",") if n.strip()]
-        content = uploaded.read()
+    col_a, col_b = st.columns(2)
+    with col_a:
+        run = st.button("Processar", use_container_width=True)
+    with col_b:
+        clear = st.button("Limpar", use_container_width=True)
 
-        try:
-            if ext == "xlsx":
-                out_bytes, out_name = process_excel(content, uploaded.name, names_list)
-                mime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            elif ext == "docx":
-                out_bytes, out_name = process_word(content, uploaded.name, names_list)
-                mime = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-            else:
-                st.error("Formato não suportado.")
-                st.stop()
+    if clear:
+        st.rerun()
 
-            st.success("Pronto! Baixe o arquivo limpo:")
-            st.download_button(
-                f"⬇️ Baixar {out_name}",
-                data=io.BytesIO(out_bytes),
-                file_name=out_name,
-                mime=mime,
-                use_container_width=True
-            )
-        except Exception as e:
-            st.error(f"Erro: {e}")
+    if run:
+        if not uploaded:
+            st.error("Envie um arquivo .xlsx ou .docx.")
+        elif not names.strip():
+            st.error("Informe ao menos um nome.")
+        else:
+            ext = get_ext(uploaded.name)
+            names_list = [n.strip() for n in names.split(",") if n.strip()]
+            content = uploaded.read()
 
-st.markdown('</div>', unsafe_allow_html=True)
+            try:
+                if ext == "xlsx":
+                    out_bytes, out_name = process_excel(content, uploaded.name, names_list)
+                    mime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                elif ext == "docx":
+                    out_bytes, out_name = process_word(content, uploaded.name, names_list)
+                    mime = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                else:
+                    st.error("Formato não suportado.")
+                    st.stop()
 
+                st.success("Pronto! Baixe o arquivo limpo:")
+                st.download_button(
+                    f"⬇️ Baixar {out_name}",
+                    data=io.BytesIO(out_bytes),
+                    file_name=out_name,
+                    mime=mime,
+                    use_container_width=True
+                )
+            except Exception as e:
+                st.error(f"Erro: {e}")
+
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# ===== Footer centralizado com ano automático =====
 year = datetime.datetime.now().year
 st.markdown(
     f"""
